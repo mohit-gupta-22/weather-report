@@ -1,0 +1,5 @@
+obsolute
+.ipynb_checkpoints
+__pycache__/
+package-lock.json
+node_modules/

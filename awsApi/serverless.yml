@@ -1,0 +1,48 @@
+service: fetchandemailweatherdata
+frameworkVersion: "3"
+
+package:
+  individually: true
+  patterns:
+    - awsApi/**
+
+provider:
+  name: aws
+  runtime: python3.12
+  timeout: 60
+  stage: ${opt:stage,'dev'}
+  region: ap-south-1
+  deploymentBucket: ${file(./env.json):${self:provider.stage}.deployment_bucket}
+  apiGateway:
+    restApiId: ${file(./env.json):${self:provider.stage}.gateway}
+    restApiRootResourceId: ${file(./env.json):${self:provider.stage}.root_resource_id}
+
+plugins:
+  - serverless-iam-roles-per-function
+  - serverless-offline
+
+functions:
+  fetchWeatherData:
+    handler: fetchandemail.lambda_handler
+    package:
+      patterns:
+        - awsApi/**
+    events:
+     - http:
+         path: /fetchandemail
+         method: POST
+         cors:
+          origins: "*"
+    layers:
+      - ${file(./env.json):${self:provider.stage}.python_layer}
+    iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - secretsmanager:GetSecretValue
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "ssm:GetParameter"
+        - "ssm:GetParameters"
+        - "ssm:GetParametersByPath"
+      Resource: "*"

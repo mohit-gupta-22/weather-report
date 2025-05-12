@@ -1,0 +1,28 @@
+name: Serverless Deployment weatherreport
+run-name: ${{ github.actor }} ${{github.action_repository}}
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "awsApi/**"
+      - ".github/workflows/serverlessDeployment-prod.yaml"
+      - "package.json"
+jobs:
+  serverless-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+      - name: Deploy weatherreport
+        run: |
+          cd awsApi
+          npm install
+          npm install --silent --no-progress -g serverless@3.38.0
+          serverless deploy --stage prod --region ap-south-1
+          # dev
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
